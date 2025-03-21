@@ -575,7 +575,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 }
 
 parameter_types! {
-	pub const Period: u32 = 25;
+	pub const Period: u32 = 5;
 	pub const Offset: u32 = 0;
 }
 
@@ -631,10 +631,10 @@ parameter_types! {
 	pub const MinEligibleCollators: u32 = 2;
 	pub const MaxInvulnerables: u32 = 4;
 	pub const MaxStakers: u32 = 200_000;
-	pub const KickThreshold: u32 = 2 * Period::get();
+	pub const KickThreshold: u32 = 1000 * Period::get();
 	pub const BondUnlockDelay: BlockNumber = 5 * MINUTES;
 	pub const StakeUnlockDelay: BlockNumber = 2 * MINUTES;
-	pub const AutoCompoundingThreshold: Balance = 50 * MUSE;
+	pub const AutoCompoundingThreshold: Balance = 1 * MUSE;
 	/// Rewards are claimable for up to a year.
 	/// Pending to claim rewards past a year will be lost.
 	pub const MaxRewardSessions: u32 = 365;
