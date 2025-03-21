@@ -8,6 +8,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 mod weights;
 pub mod xcm_config;
+mod migration;
 
 use core::marker::PhantomData;
 pub use fee::WeightToFee;
@@ -135,7 +136,9 @@ impl frame_support::traits::OnRuntimeUpgrade for PrepareForMove {
 }
 
 /// Pending migrations to be applied.
-pub type Migrations = ();
+pub type Migrations = (
+	migration::TxPauseRuntimeMigration,
+);
 
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
@@ -664,7 +667,7 @@ impl pallet_collator_staking::Config for Runtime {
 	type RestakeUnlockDelay = Period;
 	type MaxRewardSessions = MaxRewardSessions;
 	type AutoCompoundingThreshold = AutoCompoundingThreshold;
-	type WeightInfo = weights::pallet_collator_staking::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 // Project specific pallets.

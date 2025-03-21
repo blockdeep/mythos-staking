@@ -7221,7 +7221,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-staking"
 version = "1.2.5"
-source = "git+https://github.com/blockdeep/pallet-collator-staking.git?tag=v1.2.5#a0514433efb050fce027376fbe55be6c91f6d74e"
+source = "git+https://github.com/blockdeep/pallet-collator-staking.git?branch=feat%2Fpermissionless-claim#bfb7913e0b029d4f92e1c0dba014c3d3e99367a0"
 dependencies = [
  "frame-benchmarking",
  "frame-support",

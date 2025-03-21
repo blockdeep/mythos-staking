@@ -653,7 +653,7 @@ impl pallet_collator_staking::Config for Runtime {
 	type RestakeUnlockDelay = Period;
 	type MaxRewardSessions = MaxRewardSessions;
 	type AutoCompoundingThreshold = AutoCompoundingThreshold;
-	type WeightInfo = weights::pallet_collator_staking::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
