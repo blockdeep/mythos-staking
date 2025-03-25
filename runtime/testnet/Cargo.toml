@@ -47,6 +47,7 @@ pallet-authorship = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
 pallet-collective = { workspace = true, default-features = false }
 pallet-democracy = { workspace = true, default-features = false }
+pallet-safe-mode = { workspace = true, default-features = false }
 pallet-session = { workspace = true, default-features = false }
 pallet-sudo = { workspace = true, default-features = false }
 pallet-scheduler = { workspace = true, default-features = false }
@@ -57,6 +58,7 @@ pallet-transaction-payment-rpc-runtime-api = { workspace = true, default-feature
 pallet-utility = { workspace = true, default-features = false }
 pallet-message-queue = { workspace = true, default-features = false }
 pallet-multisig = { workspace = true, default-features = false }
+pallet-migrations = { workspace = true, default-features = false }
 pallet-nfts = { workspace = true, default-features = false }
 pallet-proxy = { workspace = true, default-features = false }
 pallet-preimage = { workspace = true, default-features = false }
@@ -129,12 +131,14 @@ std = [
   "pallet-dmarket/std",
   "pallet-multibatching/std",
   "pallet-marketplace/std",
+  "pallet-migrations/std",
   "pallet-multisig/std",
   "pallet-nfts/std",
   "pallet-preimage/std",
   "pallet-session/std",
   "pallet-scheduler/std",
   "pallet-sudo/std",
+  "pallet-safe-mode/std",
   "pallet-timestamp/std",
   "pallet-transaction-payment-rpc-runtime-api/std",
   "pallet-transaction-payment/std",
@@ -185,11 +189,13 @@ runtime-benchmarks = [
   "pallet-message-queue/runtime-benchmarks",
   "pallet-dmarket/runtime-benchmarks",
   "pallet-marketplace/runtime-benchmarks",
+  "pallet-migrations/runtime-benchmarks",
   "pallet-multisig/runtime-benchmarks",
   "pallet-multibatching/runtime-benchmarks",
   "pallet-nfts/runtime-benchmarks",
   "pallet-preimage/runtime-benchmarks",
   "pallet-scheduler/runtime-benchmarks",
+  "pallet-safe-mode/runtime-benchmarks",
   "pallet-sudo/runtime-benchmarks",
   "pallet-timestamp/runtime-benchmarks",
   "pallet-transaction-payment/runtime-benchmarks",
@@ -229,11 +235,13 @@ try-runtime = [
   "pallet-dmarket/try-runtime",
   "pallet-multibatching/try-runtime",
   "pallet-marketplace/try-runtime",
+  "pallet-migrations/try-runtime",
   "pallet-multisig/try-runtime",
   "pallet-nfts/try-runtime",
   "pallet-preimage/try-runtime",
   "pallet-scheduler/try-runtime",
   "pallet-session/try-runtime",
+  "pallet-safe-mode/try-runtime",
   "pallet-sudo/try-runtime",
   "pallet-timestamp/try-runtime",
   "pallet-transaction-payment/try-runtime",

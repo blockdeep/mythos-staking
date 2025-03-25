@@ -6,9 +6,9 @@ extern crate alloc; // Make the WASM binary available.
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+mod migration;
 mod weights;
 pub mod xcm_config;
-mod migration;
 
 use core::marker::PhantomData;
 pub use fee::WeightToFee;
@@ -35,11 +35,13 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use frame_support::migrations::{EnterSafeModeOnFailedMigration, FreezeChainOnFailedMigration};
 use frame_support::traits::{
 	fungible,
 	fungible::{Balanced, HoldConsideration},
 	tokens::{PayFromAccount, UnityAssetBalanceConversion},
-	AsEnsureOriginWithArg, InstanceFilter, LinearStoragePrice, OnUnbalanced, WithdrawReasons,
+	AsEnsureOriginWithArg, Contains, InsideBoth, InstanceFilter, LinearStoragePrice, OnUnbalanced,
+	WithdrawReasons,
 };
 use frame_support::{
 	construct_runtime, derive_impl,
@@ -53,7 +55,7 @@ use frame_support::{
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureSigned, EnsureWithSuccess,
+	EnsureRoot, EnsureRootWithSuccess, EnsureSigned, EnsureWithSuccess,
 };
 use pallet_dmarket::{Item, TradeParams};
 use pallet_nfts::PalletFeatures;
@@ -122,23 +124,11 @@ pub type UncheckedExtrinsic =
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, TxExtension>;
 
-pub struct PrepareForMove;
-impl frame_support::traits::OnRuntimeUpgrade for PrepareForMove {
-	fn on_runtime_upgrade() -> Weight {
-		// This is taken from https://hackmd.io/@bkchr/BkorHJMaA
-		cumulus_pallet_parachain_system::LastHrmpMqcHeads::<Runtime>::kill();
-		cumulus_pallet_parachain_system::LastDmqMqcHead::<Runtime>::kill();
-
-		// This is taken from https://github.com/paseo-network/support/blob/main/docs/rococo_migration.md#2-migrate-state-and-history
-		cumulus_pallet_parachain_system::LastRelayChainBlockNumber::<Runtime>::kill();
-
-		// Weight negligible as the block will always fail to build
-		Weight::zero()
-	}
-}
-
 /// Pending migrations to be applied.
-pub type Migrations = (migration::TxPauseRuntimeMigration,);
+pub type SingleMigrations = (migration::TxPauseRuntimeMigrationV2,);
+
+/// Pending multi-block migrations to be applied.
+pub type MultiMigrations = (pallet_collator_staking::migrations::v2::LazyMigrationV1ToV2<Runtime>,);
 
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
@@ -147,7 +137,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	Migrations,
+	SingleMigrations,
 >;
 
 /// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and burning
@@ -291,7 +281,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: alloc::borrow::Cow::Borrowed("muse"),
 	impl_name: alloc::borrow::Cow::Borrowed("muse"),
 	authoring_version: 1,
-	spec_version: 1027,
+	spec_version: 1028,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -374,7 +364,7 @@ impl frame_system::Config for Runtime {
 	/// The identifier used to distinguish between accounts.
 	type AccountId = AccountId;
 	/// The lookup mechanism to get account ID from whatever is passed in dispatchers.
-	type Lookup = sp_runtime::traits::IdentityLookup<AccountId>;
+	type Lookup = IdentityLookup<AccountId>;
 	/// The Block type used by the runtime. This is used by `construct_runtime` to retrieve the
 	/// extrinsics or other block specific data as needed.
 	type Block = Block;
@@ -391,9 +381,10 @@ impl frame_system::Config for Runtime {
 	/// The action to take on a Runtime Upgrade
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	/// The maximum number of consumers allowed on a single account.
-	type MaxConsumers = frame_support::traits::ConstU32<16>;
-	type BaseCallFilter = TxPause;
+	type MaxConsumers = ConstU32<16>;
 	type SystemWeightInfo = weights::frame_system::WeightInfo<Runtime>;
+	type MultiBlockMigrator = MultiBlockMigrations;
+	type BaseCallFilter = InsideBoth<SafeMode, TxPause>;
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -536,8 +527,8 @@ impl pallet_message_queue::Config for Runtime {
 	// The XCMP queue pallet is only ever able to handle the `Sibling(ParaId)` origin:
 	type QueueChangeHandler = NarrowOriginToSibling<XcmpQueue>;
 	type QueuePausedQuery = NarrowOriginToSibling<XcmpQueue>;
-	type HeapSize = sp_core::ConstU32<{ 64 * 1024 }>;
-	type MaxStale = sp_core::ConstU32<8>;
+	type HeapSize = ConstU32<{ 64 * 1024 }>;
+	type MaxStale = ConstU32<8>;
 	type ServiceWeight = MessageQueueServiceWeight;
 	type IdleMaxServiceWeight = MessageQueueServiceWeight;
 }
@@ -569,7 +560,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 		ParaId,
 		ParaIdToSibling,
 	>;
-	type MaxInboundSuspended = sp_core::ConstU32<1_000>;
+	type MaxInboundSuspended = ConstU32<1_000>;
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type PriceForSiblingDelivery = PriceForSiblingParachainDelivery;
@@ -645,9 +636,6 @@ parameter_types! {
 	pub const BondUnlockDelay: BlockNumber = 5 * MINUTES;
 	pub const StakeUnlockDelay: BlockNumber = 2 * MINUTES;
 	pub const AutoCompoundingThreshold: Balance = 50 * MUSE;
-	/// Rewards are claimable for up to a year.
-	/// Pending to claim rewards past a year will be lost.
-	pub const MaxRewardSessions: u32 = 365;
 	pub const MaxStakedCandidates: u32 = 3;
 }
 
@@ -672,7 +660,6 @@ impl pallet_collator_staking::Config for Runtime {
 	type BondUnlockDelay = BondUnlockDelay;
 	type StakeUnlockDelay = StakeUnlockDelay;
 	type RestakeUnlockDelay = Period;
-	type MaxRewardSessions = MaxRewardSessions;
 	type AutoCompoundingThreshold = AutoCompoundingThreshold;
 	type WeightInfo = weights::pallet_collator_staking::WeightInfo<Runtime>;
 }
@@ -1090,6 +1077,59 @@ impl pallet_tx_pause::Config for Runtime {
 	type WeightInfo = weights::pallet_tx_pause::WeightInfo<Runtime>;
 }
 
+parameter_types! {
+	pub const EnterDuration: BlockNumber = 4 * HOURS;
+	pub const ExtendDuration: BlockNumber = 2 * HOURS;
+	pub const ExtendDepositAmount: Balance = 1_000 * MUSE;
+	pub const ReleaseDelay: u32 = 2 * DAYS;
+}
+
+/// Calls that can bypass the safe-mode pallet.
+pub struct SafeModeWhitelistedCalls;
+impl Contains<RuntimeCall> for SafeModeWhitelistedCalls {
+	fn contains(call: &RuntimeCall) -> bool {
+		matches!(call, RuntimeCall::System(_) | RuntimeCall::SafeMode(_) | RuntimeCall::TxPause(_))
+	}
+}
+
+impl pallet_safe_mode::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type WhitelistedCalls = SafeModeWhitelistedCalls;
+	type EnterDuration = EnterDuration;
+	type EnterDepositAmount = ();
+	type ExtendDuration = ExtendDuration;
+	type ExtendDepositAmount = ExtendDepositAmount;
+	type ForceEnterOrigin = EnsureRootWithSuccess<AccountId, ConstU32<9>>;
+	type ForceExtendOrigin = EnsureRootWithSuccess<AccountId, ConstU32<11>>;
+	type ForceExitOrigin = EnsureRoot<AccountId>;
+	type ForceDepositOrigin = EnsureRoot<AccountId>;
+	type ReleaseDelay = ReleaseDelay;
+	type Notify = ();
+	type WeightInfo = weights::pallet_safe_mode::WeightInfo<Runtime>;
+}
+
+parameter_types! {
+	pub MbmServiceWeight: Weight = Perbill::from_percent(80) * RuntimeBlockWeights::get().max_block;
+}
+
+impl pallet_migrations::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	#[cfg(not(feature = "runtime-benchmarks"))]
+	type Migrations = MultiMigrations;
+	// Benchmarks need mocked migrations to guarantee that they succeed.
+	#[cfg(feature = "runtime-benchmarks")]
+	type Migrations = pallet_migrations::mock_helpers::MockedMigrations;
+	type CursorMaxLen = ConstU32<65_536>;
+	type IdentifierMaxLen = ConstU32<256>;
+	type MigrationStatusHandler = ();
+	type FailedMigrationHandler =
+		EnterSafeModeOnFailedMigration<SafeMode, FreezeChainOnFailedMigration>;
+	type MaxServiceWeight = MbmServiceWeight;
+	type WeightInfo = ();
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -1138,6 +1178,8 @@ construct_runtime!(
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
 		TxPause: pallet_tx_pause = 42,
+		SafeMode: pallet_safe_mode = 43,
+		MultiBlockMigrations: pallet_migrations = 44,
 
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
@@ -1179,6 +1221,8 @@ mod benches {
 		[pallet_collator_staking, CollatorStaking]
 		[pallet_transaction_payment, TransactionPayment]
 		[pallet_tx_pause, TxPause]
+		[pallet_safe_mode, SafeMode]
+		[pallet_migrations, MultiBlockMigrations]
 	);
 }
 

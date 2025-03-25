@@ -4,10 +4,10 @@ use pallet_tx_pause::{PalletCallNameOf, PalletNameOf, WeightInfo};
 use sp_std::vec;
 
 /// Migration to set up the TxPause pallet.
-pub struct TxPauseRuntimeMigration;
-impl OnRuntimeUpgrade for TxPauseRuntimeMigration {
+pub struct TxPauseRuntimeMigrationV2;
+impl OnRuntimeUpgrade for TxPauseRuntimeMigrationV2 {
 	fn on_runtime_upgrade() -> Weight {
-		log::info!("Running TxPause runtime migration...");
+		log::info!("Running TxPause runtime migration v2...");
 
 		let pallet_name: PalletNameOf<Runtime> = match b"CollatorStaking".to_vec().try_into() {
 			Ok(name) => name,
@@ -48,15 +48,18 @@ impl OnRuntimeUpgrade for TxPauseRuntimeMigration {
 				Ok(name) => name,
 				Err(_) => {
 					log::error!("Failed to convert call name '{:?}'", raw_call_name);
-					return Weight::zero()
+					return Weight::zero();
 				},
 			};
-			if let Err(e) = pallet_tx_pause::Pallet::<Runtime>::pause(RuntimeOrigin::root(), (pallet_name.clone(), call)) {
-				log::error!("Failed to pause call '{:?}': {:?}", raw_call_name, e);
+			if let Err(e) = pallet_tx_pause::Pallet::<Runtime>::unpause(
+				RuntimeOrigin::root(),
+				(pallet_name.clone(), call),
+			) {
+				log::error!("Failed to unpause call '{:?}': {:?}", raw_call_name, e);
 			}
 		}
 
-		log::info!("Completed TxPause runtime migration.");
-		weights::pallet_tx_pause::WeightInfo::<Runtime>::pause().saturating_mul(total_calls)
+		log::info!("Completed TxPause runtime migration v2.");
+		weights::pallet_tx_pause::WeightInfo::<Runtime>::unpause().saturating_mul(total_calls)
 	}
 }
