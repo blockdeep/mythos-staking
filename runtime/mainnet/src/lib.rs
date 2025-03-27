@@ -651,7 +651,6 @@ impl pallet_collator_staking::Config for Runtime {
 	type BondUnlockDelay = BondUnlockDelay;
 	type StakeUnlockDelay = StakeUnlockDelay;
 	type RestakeUnlockDelay = Period;
-	type MaxRewardSessions = MaxRewardSessions;
 	type AutoCompoundingThreshold = AutoCompoundingThreshold;
 	type WeightInfo = ();
 }

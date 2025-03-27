@@ -625,9 +625,6 @@ parameter_types! {
 	pub const BondUnlockDelay: BlockNumber = 5 * MINUTES;
 	pub const StakeUnlockDelay: BlockNumber = 2 * MINUTES;
 	pub const AutoCompoundingThreshold: Balance = 1 * MUSE;
-	/// Rewards are claimable for up to a year.
-	/// Pending to claim rewards past a year will be lost.
-	pub const MaxRewardSessions: u32 = 365;
 	pub const MaxStakedCandidates: u32 = 3;
 }
 
@@ -652,7 +649,6 @@ impl pallet_collator_staking::Config for Runtime {
 	type BondUnlockDelay = BondUnlockDelay;
 	type StakeUnlockDelay = StakeUnlockDelay;
 	type RestakeUnlockDelay = Period;
-	type MaxRewardSessions = MaxRewardSessions;
 	type AutoCompoundingThreshold = AutoCompoundingThreshold;
 	type WeightInfo = weights::pallet_collator_staking::WeightInfo<Runtime>;
 }
