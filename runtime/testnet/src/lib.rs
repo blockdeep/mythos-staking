@@ -654,7 +654,7 @@ impl pallet_collator_staking::Config for Runtime {
 	type RestakeUnlockDelay = Period;
 	type MaxRewardSessions = MaxRewardSessions;
 	type AutoCompoundingThreshold = AutoCompoundingThreshold;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_collator_staking::WeightInfo<Runtime>;
 }
 
 // Project specific pallets.
@@ -1107,7 +1107,7 @@ impl pallet_safe_mode::Config for Runtime {
 	type ForceDepositOrigin = EnsureRoot<AccountId>;
 	type ReleaseDelay = ReleaseDelay;
 	type Notify = ();
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_safe_mode::WeightInfo<Runtime>;
 }
 
 parameter_types! {
