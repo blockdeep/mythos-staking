@@ -650,7 +650,7 @@ impl pallet_collator_staking::Config for Runtime {
 	type StakeUnlockDelay = StakeUnlockDelay;
 	type RestakeUnlockDelay = Period;
 	type AutoCompoundingThreshold = AutoCompoundingThreshold;
-	type WeightInfo = weights::pallet_collator_staking::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 // Project specific pallets.

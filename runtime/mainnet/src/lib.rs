@@ -277,7 +277,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: alloc::borrow::Cow::Borrowed("mythos"),
 	impl_name: alloc::borrow::Cow::Borrowed("mythos"),
 	authoring_version: 1,
-	spec_version: 1016,
+	spec_version: 1014,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -1063,16 +1063,6 @@ impl pallet_treasury::Config for Runtime {
 	type BenchmarkHelper = TreasuryBenchmarkHelper<Balances>;
 }
 
-impl pallet_tx_pause::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type PauseOrigin = RootOrCouncilTwoThirdsMajority;
-	type UnpauseOrigin = RootOrCouncilTwoThirdsMajority;
-	type WhitelistedCalls = ();
-	type MaxNameLen = ConstU32<256>;
-	type WeightInfo = weights::pallet_tx_pause::WeightInfo<Runtime>;
-}
-
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -1116,10 +1106,9 @@ construct_runtime!(
 		CumulusXcm: cumulus_pallet_xcm = 32,
 		MessageQueue: pallet_message_queue = 33,
 
-		// Other pallets.
+		//Other
 		Proxy: pallet_proxy = 40,
 		Vesting: pallet_vesting = 41,
-		TxPause: pallet_tx_pause = 42,
 
 		Escrow: pallet_escrow = 50,
 		MythProxy: pallet_myth_proxy = 51,
@@ -1130,32 +1119,35 @@ construct_runtime!(
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	frame_benchmarking::define_benchmarks!(
-		[frame_system, SystemBench::<Runtime>]
-		[pallet_timestamp, Timestamp]
-		[pallet_balances, Balances]
-		[pallet_multibatching, Multibatching]
-		[pallet_utility, Utility]
 		[cumulus_pallet_parachain_system, ParachainSystem]
-		[pallet_message_queue, MessageQueue]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
-		[pallet_session, SessionBench::<Runtime>]
-		[pallet_sudo, Sudo]
-		[pallet_multisig, Multisig]
-		[pallet_collator_staking, CollatorStaking]
+		[frame_system, SystemBench::<Runtime>]
+		[pallet_balances, Balances]
 		[pallet_nfts, Nfts]
 		[pallet_marketplace, Marketplace]
 		[pallet_proxy, Proxy]
 		[pallet_escrow, Escrow]
-		[pallet_vesting, Vesting]
 		[pallet_collective, Council]
-		[pallet_myth_proxy, MythProxy]
-		[pallet_dmarket, Dmarket]
-		[pallet_treasury, Treasury]
 		[pallet_democracy, Democracy]
-		[pallet_scheduler, Scheduler]
+		[pallet_dmarket, Dmarket]
+		[pallet_escrow, Escrow]
+		[pallet_marketplace, Marketplace]
+		[pallet_message_queue, MessageQueue]
+		[pallet_multibatching, Multibatching]
+		[pallet_multisig, Multisig]
+		[pallet_myth_proxy, MythProxy]
+		[pallet_nfts, Nfts]
 		[pallet_preimage, Preimage]
+		[pallet_proxy, Proxy]
+		[pallet_session, SessionBench::<Runtime>]
+		[pallet_scheduler, Scheduler]
+		[pallet_sudo, Sudo]
+		[pallet_timestamp, Timestamp]
+		[pallet_treasury, Treasury]
+		[pallet_vesting, Vesting]
+		[pallet_utility, Utility]
+		[pallet_collator_staking, CollatorStaking]
 		[pallet_transaction_payment, TransactionPayment]
-		[pallet_tx_pause, TxPause]
 	);
 }
 
