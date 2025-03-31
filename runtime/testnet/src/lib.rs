@@ -123,7 +123,8 @@ pub type UncheckedExtrinsic =
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
 
 /// Pending migrations to be applied.
-pub type Migrations = (migration::TxPauseRuntimeMigrationV2,);
+pub type SingleMigrations = (migration::TxPauseRuntimeMigrationV2,);
+pub type MultiMigrations = (pallet_collator_staking::migrations::v2::LazyMigrationV1ToV2<Runtime>,);
 
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
@@ -132,7 +133,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	Migrations,
+	SingleMigrations,
 >;
 
 /// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and burning
@@ -1113,7 +1114,7 @@ parameter_types! {
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = pallet_collator_staking::migrations::v2::LazyMigrationV1ToV2<Runtime>;
+	type Migrations = MultiMigrations;
 	// Benchmarks need mocked migrations to guarantee that they succeed.
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = pallet_migrations::mock_helpers::MockedMigrations;

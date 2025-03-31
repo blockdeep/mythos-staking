@@ -6,6 +6,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+mod migration;
 mod weights;
 pub mod xcm_config;
 
@@ -15,7 +16,9 @@ pub use fee::WeightToFee;
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use frame_support::traits::fungible::Balanced;
-use frame_support::traits::{fungible, AsEnsureOriginWithArg, Contains, InstanceFilter, OnUnbalanced, WithdrawReasons};
+use frame_support::traits::{
+	fungible, AsEnsureOriginWithArg, Contains, InstanceFilter, OnUnbalanced, WithdrawReasons,
+};
 
 #[cfg(feature = "runtime-benchmarks")]
 use pallet_treasury::ArgumentsFactory;
@@ -55,7 +58,10 @@ use frame_support::{
 	weights::{ConstantMultiplier, Weight},
 	PalletId,
 };
-use frame_system::{limits::{BlockLength, BlockWeights}, EnsureRoot, EnsureRootWithSuccess, EnsureSigned, EnsureWithSuccess};
+use frame_system::{
+	limits::{BlockLength, BlockWeights},
+	EnsureRoot, EnsureRootWithSuccess, EnsureSigned, EnsureWithSuccess,
+};
 use pallet_dmarket::{Item, TradeParams};
 use pallet_nfts::PalletFeatures;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -119,8 +125,10 @@ pub type UncheckedExtrinsic =
 /// Extrinsic type that has already been checked.
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra>;
 
-/// Pending migrations to be applied.
-pub type Migrations = ();
+/// Pending single-block migrations to be applied.
+pub type SingleMigrations = (migration::TxPauseRuntimeMigrationV2,);
+/// Pending multi-block migrations to be applied.
+pub type MultiMigrations = (pallet_collator_staking::migrations::v2::LazyMigrationV1ToV2<Runtime>,);
 
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
@@ -129,7 +137,7 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	Migrations,
+	SingleMigrations,
 >;
 
 /// Implementation of `OnUnbalanced` that deals with the fees by combining tip and fee and burning
@@ -374,6 +382,7 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	/// The maximum number of consumers allowed on a single account.
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type MultiBlockMigrator = MultiBlockMigrations;
 	type SystemWeightInfo = weights::frame_system::WeightInfo<Runtime>;
 }
 
@@ -1109,7 +1118,7 @@ parameter_types! {
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = pallet_collator_staking::migrations::v2::LazyMigrationV1ToV2<Runtime>;
+	type Migrations = MultiMigrations;
 	// Benchmarks need mocked migrations to guarantee that they succeed.
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = pallet_migrations::mock_helpers::MockedMigrations;
