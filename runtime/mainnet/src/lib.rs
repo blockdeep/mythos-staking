@@ -16,9 +16,7 @@ pub use fee::WeightToFee;
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, AssetId, ParaId};
 use frame_support::traits::fungible::Balanced;
-use frame_support::traits::{
-	fungible, AsEnsureOriginWithArg, Contains, InstanceFilter, OnUnbalanced, WithdrawReasons,
-};
+use frame_support::traits::{fungible, AsEnsureOriginWithArg, Contains, InsideBoth, InstanceFilter, OnUnbalanced, WithdrawReasons};
 
 #[cfg(feature = "runtime-benchmarks")]
 use pallet_treasury::ArgumentsFactory;
@@ -384,6 +382,7 @@ impl frame_system::Config for Runtime {
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 	type MultiBlockMigrator = MultiBlockMigrations;
 	type SystemWeightInfo = weights::frame_system::WeightInfo<Runtime>;
+	type BaseCallFilter = InsideBoth<SafeMode, TxPause>;
 }
 
 impl pallet_timestamp::Config for Runtime {
