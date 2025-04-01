@@ -393,6 +393,7 @@ impl frame_system::Config for Runtime {
 	/// The maximum number of consumers allowed on a single account.
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 	type SystemWeightInfo = weights::frame_system::WeightInfo<Runtime>;
+	type BaseCallFilter = TxPause;
 }
 
 impl pallet_timestamp::Config for Runtime {
