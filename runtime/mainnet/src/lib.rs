@@ -8,6 +8,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 mod weights;
 pub mod xcm_config;
+mod migration;
 
 extern crate alloc;
 pub use fee::WeightToFee;
@@ -126,7 +127,7 @@ pub type UncheckedExtrinsic =
 pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, RuntimeCall, TxExtension>;
 
 /// Pending migrations to be applied.
-pub type Migrations = ();
+pub type Migrations = (migration::TxPauseRuntimeMigration,);
 
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
