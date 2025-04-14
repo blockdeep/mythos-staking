@@ -48,10 +48,13 @@ impl OnRuntimeUpgrade for TxPauseRuntimeMigration {
 				Ok(name) => name,
 				Err(_) => {
 					log::error!("Failed to convert call name '{:?}'", raw_call_name);
-					return Weight::zero()
+					return Weight::zero();
 				},
 			};
-			if let Err(e) = pallet_tx_pause::Pallet::<Runtime>::pause(RuntimeOrigin::root(), (pallet_name.clone(), call)) {
+			if let Err(e) = pallet_tx_pause::Pallet::<Runtime>::pause(
+				RuntimeOrigin::root(),
+				(pallet_name.clone(), call),
+			) {
 				log::error!("Failed to pause call '{:?}': {:?}", raw_call_name, e);
 			}
 		}

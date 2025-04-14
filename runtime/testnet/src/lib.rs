@@ -6,9 +6,9 @@ extern crate alloc; // Make the WASM binary available.
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+mod migration;
 mod weights;
 pub mod xcm_config;
-mod migration;
 
 use core::marker::PhantomData;
 pub use fee::WeightToFee;
@@ -1090,6 +1090,42 @@ impl pallet_tx_pause::Config for Runtime {
 	type WeightInfo = weights::pallet_tx_pause::WeightInfo<Runtime>;
 }
 
+parameter_types! {
+	//   27 | Min encoded size of `Registration`
+	// - 10 | Min encoded size of `IdentityInfo`
+	// -----|
+	//   17 | Min size without `IdentityInfo` (accounted for in byte deposit)
+	pub const BasicDeposit: Balance = deposit(1, 17) * 10;
+	pub const ByteDeposit: Balance = deposit(0, 1) * 10;
+	pub const UsernameDeposit: Balance = deposit(0, 32) * 10;
+	pub const SubAccountDeposit: Balance = deposit(1, 53) * 10;
+	pub const MaxSubAccounts: u32 = 100;
+	pub const MaxRegistrars: u32 = 20;
+}
+
+impl pallet_identity::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type BasicDeposit = BasicDeposit;
+	type ByteDeposit = ByteDeposit;
+	type UsernameDeposit = UsernameDeposit;
+	type SubAccountDeposit = SubAccountDeposit;
+	type MaxSubAccounts = MaxSubAccounts;
+	type IdentityInformation = runtime_common::IdentityInfo;
+	type MaxRegistrars = MaxRegistrars;
+	type Slashed = Treasury;
+	type ForceOrigin = RootOrCouncilTwoThirdsMajority;
+	type RegistrarOrigin = RootOrCouncilTwoThirdsMajority;
+	type OffchainSignature = Signature;
+	type SigningPublicKey = <Signature as Verify>::Signer;
+	type UsernameAuthorityOrigin = RootOrCouncilTwoThirdsMajority;
+	type PendingUsernameExpiration = ConstU32<{ 7 * MINUTES }>;
+	type UsernameGracePeriod = ConstU32<{ 7 * MINUTES }>;
+	type MaxSuffixLength = ConstU32<7>;
+	type MaxUsernameLength = ConstU32<32>;
+	type WeightInfo = ();
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub struct Runtime {
@@ -1105,6 +1141,7 @@ construct_runtime!(
 		Preimage: pallet_preimage = 6,
 		Scheduler: pallet_scheduler = 7,
 		Utility: pallet_utility = 8,  // was previously 4
+		Identity: pallet_identity = 9,
 
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
@@ -1148,38 +1185,43 @@ construct_runtime!(
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	frame_benchmarking::define_benchmarks!(
-		[cumulus_pallet_parachain_system, ParachainSystem]
-		[cumulus_pallet_xcmp_queue, XcmpQueue]
-		[cumulus_pallet_weight_reclaim, WeightReclaim]
-		[frame_system, SystemBench::<Runtime>]
-		[pallet_balances, Balances]
-		[pallet_nfts, Nfts]
-		[pallet_marketplace, Marketplace]
-		[pallet_proxy, Proxy]
-		[pallet_escrow, Escrow]
-		[pallet_collective, Council]
-		[pallet_democracy, Democracy]
-		[pallet_dmarket, Dmarket]
-		[pallet_escrow, Escrow]
-		[pallet_marketplace, Marketplace]
-		[pallet_message_queue, MessageQueue]
-		[pallet_multibatching, Multibatching]
-		[pallet_multisig, Multisig]
-		[pallet_myth_proxy, MythProxy]
-		[pallet_nfts, Nfts]
-		[pallet_preimage, Preimage]
-		[pallet_proxy, Proxy]
-		[pallet_session, SessionBench::<Runtime>]
-		[pallet_scheduler, Scheduler]
-		[pallet_sudo, Sudo]
-		[pallet_timestamp, Timestamp]
-		[pallet_treasury, Treasury]
-		[pallet_vesting, Vesting]
-		[pallet_utility, Utility]
-		[pallet_collator_staking, CollatorStaking]
-		[pallet_transaction_payment, TransactionPayment]
-		[pallet_tx_pause, TxPause]
-	);
+			[cumulus_pallet_parachain_system, ParachainSystem]
+			[cumulus_pallet_xcmp_queue, XcmpQueue]
+			[cumulus_pallet_weight_reclaim, WeightReclaim]
+			[frame_system, SystemBench::<Runtime>]
+			[pallet_balances, Balances]
+			[pallet_nfts, Nfts]
+			[pallet_marketplace, Marketplace]
+			[pallet_proxy, Proxy]
+			[pallet_escrow, Escrow]
+			[pallet_collective, Council]
+			[pallet_democracy, Democracy]
+			[pallet_dmarket, Dmarket]
+			[pallet_escrow, Escrow]
+			[pallet_marketplace, Marketplace]
+			[pallet_message_queue, MessageQueue]
+			[pallet_multibatching, Multibatching]
+			[pallet_multisig, Multisig]
+			[pallet_myth_proxy, MythProxy]
+			[pallet_nfts, Nfts]
+			[pallet_preimage, Preimage]
+			[pallet_proxy, Proxy]
+			[pallet_session, SessionBench::<Runtime>]
+			[pallet_scheduler, Scheduler]
+			[pallet_sudo, Sudo]
+			[pallet_timestamp, Timestamp]
+			[pallet_treasury, Treasury]
+			[pallet_vesting, Vesting]
+			[pallet_utility, Utility]
+			[pallet_collator_staking, CollatorStaking]
+			[pallet_transaction_payment, TransactionPayment]
+	<<<<<<< HEAD
+			[pallet_tx_pause, TxPause]
+	=======
+			// TODO: include once https://github.com/paritytech/polkadot-sdk/pull/8179 gets released
+			// [pallet_identity, Identity]
+	>>>>>>> origin/main
+		);
 }
 
 pub mod genesis_config_presets {
