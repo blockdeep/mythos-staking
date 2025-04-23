@@ -601,4 +601,39 @@ impl<T: frame_system::Config> pallet_collator_staking::WeightInfo for WeightInfo
 			.saturating_add(T::DbWeight::get().reads(2))
 			.saturating_add(T::DbWeight::get().writes(2))
 	}
+	/// Storage: `CollatorStaking::ReleaseQueues` (r:2 w:1)
+	/// Proof: `CollatorStaking::ReleaseQueues` (`max_values`: None, `max_size`: Some(97), added: 2572, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Freezes` (r:1 w:0)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(937), added: 3412, mode: `MaxEncodedLen`)
+	/// The range of component `l` is `[1, 3]`.
+	fn migration_from_v1_to_v2_migrate_release_queue(l: u32, ) -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `284 + l * (21 ±0)`
+		//  Estimated: `6134`
+		// Minimum execution time: 16_330_000 picoseconds.
+		Weight::from_parts(15_332_027, 6134)
+			// Standard Error: 15_610
+			.saturating_add(Weight::from_parts(1_825_170, 0).saturating_mul(l.into()))
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+	/// Storage: `CollatorStaking::Candidates` (r:2 w:0)
+	/// Proof: `CollatorStaking::Candidates` (`max_values`: None, `max_size`: Some(56), added: 2531, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Freezes` (r:1 w:1)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(937), added: 3412, mode: `MaxEncodedLen`)
+	/// Storage: `System::Account` (r:1 w:1)
+	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(116), added: 2591, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Locks` (r:1 w:0)
+	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
+	/// Storage: `CollatorStaking::LockedBalances` (r:1 w:1)
+	/// Proof: `CollatorStaking::LockedBalances` (`max_values`: None, `max_size`: Some(68), added: 2543, mode: `MaxEncodedLen`)
+	fn migration_from_v1_to_v2_migrate_candidacy_bond() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `555`
+		//  Estimated: `6052`
+		// Minimum execution time: 57_440_000 picoseconds.
+		Weight::from_parts(57_931_000, 6052)
+			.saturating_add(T::DbWeight::get().reads(6_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+	}
 }
