@@ -636,4 +636,19 @@ impl<T: frame_system::Config> pallet_collator_staking::WeightInfo for WeightInfo
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
+	/// Storage: `CollatorStaking::CandidacyBondReleases` (r:2 w:1)
+	/// Proof: `CollatorStaking::CandidacyBondReleases` (`max_values`: None, `max_size`: Some(57), added: 2532, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Freezes` (r:1 w:1)
+	/// Proof: `Balances::Freezes` (`max_values`: None, `max_size`: Some(937), added: 3412, mode: `MaxEncodedLen`)
+	/// Storage: `Balances::Locks` (r:1 w:0)
+	/// Proof: `Balances::Locks` (`max_values`: None, `max_size`: Some(1287), added: 3762, mode: `MaxEncodedLen`)
+	fn migration_from_v1_to_v2_migrate_candidacy_bond_release() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `516`
+		//  Estimated: `6054`
+		// Minimum execution time: 38_531_000 picoseconds.
+		Weight::from_parts(39_411_000, 6054)
+			.saturating_add(T::DbWeight::get().reads(4_u64))
+			.saturating_add(T::DbWeight::get().writes(2_u64))
+	}
 }
