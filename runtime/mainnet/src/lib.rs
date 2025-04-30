@@ -1625,6 +1625,9 @@ impl_runtime_apis! {
 		fn candidates() -> Vec<(AccountId, Balance)> {
 			CollatorStaking::candidates()
 		}
+		fn total_stake(account: AccountId) -> Balance {
+			CollatorStaking::get_staked_balance(&account)
+		}
 	}
 
 	#[cfg(feature = "try-runtime")]
