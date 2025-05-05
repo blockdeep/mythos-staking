@@ -21,7 +21,7 @@ chain = "local-v"
 	[[parachains.collators]]
 	name = "muse-collator01"
 	command = "./target/release/mythos-node"
-	rpc_port = 8833
+	ws_port = 8833
 	args = ["--pool-limit 500000 --pool-kbytes 2048000 --rpc-max-connections 10000 -lparachain=debug"]
 
 	[[parachains.collators]]

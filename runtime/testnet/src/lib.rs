@@ -579,7 +579,7 @@ impl cumulus_pallet_weight_reclaim::Config for Runtime {
 }
 
 parameter_types! {
-	pub const Period: u32 = 25;
+	pub const Period: u32 = 5;
 	pub const Offset: u32 = 0;
 }
 

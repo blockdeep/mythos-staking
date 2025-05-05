@@ -107,7 +107,8 @@ zombienet_testnet() {
   zombienet_init
   cargo +stable build --release --features testnet-runtime/metadata-hash
   echo "spawning paseo-local relay chain plus mythos testnet as a parachain..."
-  $ZOMBIENET_BIN spawn zombienet-config/testnet.toml -p native
+  rm -rf tmp
+  $ZOMBIENET_BIN spawn -d tmp zombienet-config/testnet.toml -p native
 }
 
 zombienet_testnet_asset_hub() {
