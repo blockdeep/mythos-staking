@@ -7151,7 +7151,7 @@ dependencies = [
 [[package]]
 name = "pallet-collator-staking"
 version = "1.3.0"
-source = "git+https://github.com/blockdeep/pallet-collator-staking.git?branch=feat%2Flocking#a7eb525a58ca68a9c0d50fd527a4b10e9fb3413d"
+source = "git+https://github.com/blockdeep/pallet-collator-staking.git?branch=feat%2Flocking#5d11fc0c9e6001d31c4306f90012ad22073c652f"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
